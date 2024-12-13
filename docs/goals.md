@@ -28,11 +28,11 @@ I would want to run a silent run, the options would load, then fill up with poss
     - with the possible data as buttons
     - trim on off field
 5. thumbnail and info section
-    - on off thumbnail
+    - on off subtitles
     - on off embedd thumbnail 
     - on off embed metadata 
 6. cookies section
-    - cookies from browser option
+    - cookies from browser option, auto check current browser
 7. free section, to add commands
 
 ## Save profiles

@@ -1,18 +1,23 @@
 package main
 
 import (
-	"context"
-	// "log"
-	// "net/http"
-	"os"
+	"fmt"
+	"log"
+	"net/http"
 
 	"yt-dlp-gui/views"
+
+	"github.com/a-h/templ"
 )
 
 func main() {
-	component := views.Hello("John")
-	component.Render(context.Background(), os.Stdout)
-}
+	component := views.Base()
 
-// func index(w http.ResponseWriter, r *http.Request) {
-// }
+	fs := http.FileServer(http.Dir("static/"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	http.Handle("/", templ.Handler(component))
+
+	fmt.Println("Listening on localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
