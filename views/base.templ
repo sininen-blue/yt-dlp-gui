@@ -18,7 +18,7 @@ templ Base() {
 				<p>Downloading</p>
 			</header>
 			<main class=".container">
-				<form action="/" method="POST">
+				<form action="/download" method="POST">
 					<label for="url">
 						Youtube Url:
 					</label>
@@ -35,10 +35,15 @@ templ Base() {
 						</h2>
 						<label>
 							Video quality
-							<select name="video_quality" aria-label="Select video quality">
+							<select
+								hx-post="/arg/video_quality"
+								hx-swap="none"
+								name="video_quality"
+								aria-label="Select video quality"
+							>
 								<option selected>Best</option>
 								<option>1080p</option>
-								<option>720</option>
+								<option>720p</option>
 							</select>
 						</label>
 						<label>

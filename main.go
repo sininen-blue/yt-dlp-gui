@@ -11,9 +11,11 @@ import (
 
 func main() {
 	fs := http.FileServer(http.Dir("static/"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.Handle("GET /static/", http.StripPrefix("/static/", fs))
 
-	http.HandleFunc("/", indexView)
+	http.HandleFunc("GET /", indexView)
+	http.HandleFunc("POST /download", downloadHandler)
+	http.HandleFunc("POST /arg/{argument}", argumentHandler)
 
 	fmt.Println("Listening on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -21,18 +23,28 @@ func main() {
 
 func indexView(w http.ResponseWriter, r *http.Request) {
 	component := views.Base()
-	switch r.Method {
-	case http.MethodGet:
-		log.Println("in get")
-		component.Render(r.Context(), w)
-	case http.MethodPost:
-		log.Println("in post")
-		services.AddArgument(r.FormValue("url"))
-		err := services.Download()
-		if err != nil {
-			log.Fatal(err)
-		}
+	component.Render(r.Context(), w)
+}
 
-		component.Render(r.Context(), w)
+func downloadHandler(w http.ResponseWriter, r *http.Request) {
+	component := views.Base()
+
+	services.AddArgument(r.FormValue("url"))
+	err := services.Download()
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	component.Render(r.Context(), w)
+}
+
+func argumentHandler(w http.ResponseWriter, r *http.Request) {
+	component := views.Base()
+
+	arg := r.PathValue("argument")
+	log.Println(r.FormValue(arg))
+
+	// switch statement here about all the possible arguments
+
+	component.Render(r.Context(), w)
 }
