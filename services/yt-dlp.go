@@ -10,15 +10,19 @@ var command exec.Cmd
 var defaultArgs []string
 
 func init() {
-	defaultArgs = []string{}
+	defaultArgs = []string{
+		"--progress-template",
+		"download:[%(progress)s]",
+	}
+	command.Args = append(command.Args, defaultArgs...)
 }
 
-func CheckYtDlp() (string, error) {
-	path, err := exec.LookPath("yt-dlp")
+func CheckYtDlp() error {
+	_, err := exec.LookPath("yt-dlp")
 	if err != nil {
-		return "", err
+		return err
 	}
-	return path, nil
+	return nil
 }
 
 func AddArgument(arg string) {
@@ -30,22 +34,20 @@ func RemoveArgument() {
 }
 
 func Download() error {
-	ytdlpPath, err := CheckYtDlp()
+	err := CheckYtDlp()
 	if err != nil {
-		log.Println(err)
+		log.Println("yt-dlp could not be found:", err)
 		return err
 	}
+	command = *exec.Command("yt-dlp", command.Args...)
 
-	command.Path = ytdlpPath
-
-	log.Println("starting download with", command.Path, command.Args)
 	stdout, err := command.StdoutPipe()
 	if err != nil {
 		log.Println("Couldn't connect to stdout:", err)
 		return err
 	}
 
-	err = command.Run()
+	err = command.Start()
 	if err != nil {
 		log.Println("Couldn't start:", err)
 		return err
@@ -56,9 +58,12 @@ func Download() error {
 		log.Println(scanner.Text())
 	}
 
-	// Check for any scanner errors.
 	if err := scanner.Err(); err != nil {
 		log.Println("Error reading stdout:", err)
 	}
+	if err := command.Wait(); err != nil {
+		log.Println("Error waiting for command:", err)
+	}
 	return nil
+
 }
