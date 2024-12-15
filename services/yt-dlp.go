@@ -2,12 +2,25 @@ package services
 
 import (
 	"bufio"
+	"encoding/json"
 	"log"
 	"os/exec"
 )
 
 var command exec.Cmd
 var argMap map[string]string
+
+type Options struct {
+	URL     string   `json:"original_url"`
+	Formats []Format `json:"formats"`
+}
+
+type Format struct {
+	ID         string `json:"format_id"`
+	Ext        string `json:"ext"`
+	VideoExt   string `json:"video_ext"`
+	Resolution string `json:"resolution"`
+}
 
 func init() {
 	argMap = make(map[string]string)
@@ -22,36 +35,23 @@ func CheckYtDlp() error {
 	return nil
 }
 
-func GetOptions(url string) error {
+func GetOptions(url string) (Options, error) {
+	var options Options
+
 	optionsCommand := exec.Command("yt-dlp", url, "-j")
-
-	stdout, err := optionsCommand.StdoutPipe()
-	if err != nil {
-		log.Println("Couldn't connect to stdout:", err)
-		return err
-	}
-
-	log.Println(optionsCommand.Args)
-	err = optionsCommand.Start()
+	output, err := optionsCommand.Output()
 	if err != nil {
 		log.Println("Couldn't start:", err)
-		return err
+		return options, err
 	}
 
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		// do parsing here
-		log.Println(scanner.Text())
+	err = json.Unmarshal(output, &options)
+	if err != nil {
+		log.Println("Unmarshal err: ", err)
+		return options, nil
 	}
 
-	if err := scanner.Err(); err != nil {
-		log.Println("Error reading stdout:", err)
-	}
-
-	if err := optionsCommand.Wait(); err != nil {
-		log.Println("Error waiting for optionsCommand:", err)
-	}
-	return nil
+	return options, nil
 }
 
 func SetArgument(argName string, arg string) {

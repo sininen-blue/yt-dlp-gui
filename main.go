@@ -9,11 +9,9 @@ import (
 	"yt-dlp-gui/views"
 )
 
-var options map[string]string
+var options services.Options
 
 func main() {
-	options = make(map[string]string)
-
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("GET /static/", http.StripPrefix("/static/", fs))
 
@@ -46,7 +44,12 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 func optionsHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("url")
 
-	options["url"] = url
+	// lmao
+	log.Println("??")
+	options, _ = services.GetOptions(url)
+
+	component := views.Base(options)
+	component.Render(r.Context(), w)
 }
 
 func argumentHandler(w http.ResponseWriter, r *http.Request) {

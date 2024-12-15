@@ -1,6 +1,8 @@
 package views
 
-templ Base(options map[string]string) {
+import "yt-dlp-gui/services"
+
+templ Base(options services.Options) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -24,24 +26,39 @@ templ Base(options map[string]string) {
 					</label>
 					<fieldset id="url" role="group">
 						<input
-							hx-post="/updateOpts/"
-							hx-trigger="changed"
-							hx-target="html"
+							hx-post="/updateOpts"
+							hx-trigger="input changed delay:500ms, load"
+							hx-target="#options"
+							hx-select="#options"
+							hx-swap="outerHTML"
 							type="url"
 							name="url"
 							placeholder="https://www.youtube.com/watch?v=KxGRhd_iWuE"
-							value={ options["url"] }
+							value={ options.URL }
 							required
 						/>
 						<button type="submit">Download</button>
 					</fieldset>
 				</form>
 				<progress value="0" max="100"></progress>
-				<article class="options">
+				<article class="options" id="options">
 					<section>
 						<h2>
 							Quality selection
 						</h2>
+						<label>
+							Extension
+							<select
+								hx-post="/arg/extension"
+								hx-swap="none"
+								name="extension"
+								aria-label="Select extension"
+							>
+								for _, format := range options.Formats {
+									<option>{ format.Ext }</option>
+								}
+							</select>
+						</label>
 						<label>
 							Video quality
 							<select
@@ -50,9 +67,11 @@ templ Base(options map[string]string) {
 								name="video_quality"
 								aria-label="Select video quality"
 							>
-								<option selected>Best</option>
-								<option>1080p</option>
-								<option>720p</option>
+								for _, format := range options.Formats {
+									if format.VideoExt != "none" {
+										<option>{ format.Resolution }</option>
+									}
+								}
 							</select>
 						</label>
 						<label>
