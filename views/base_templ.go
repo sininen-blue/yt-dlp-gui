@@ -67,7 +67,7 @@ func Base(options services.Options) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</select></label> <label>Video quality <select hx-post=\"/arg/video_quality\" hx-swap=\"none\" name=\"video_quality\" aria-label=\"Select video quality\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</select></label> <label>Video Resolution <select hx-post=\"/arg/video_resolution\" hx-swap=\"none\" name=\"video_quality\" aria-label=\"Select video resolution\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

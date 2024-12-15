@@ -9,9 +9,12 @@ import (
 	"yt-dlp-gui/views"
 )
 
-var options services.Options
+var availableOptions services.Options
+var chosenOptions map[string]string
 
 func main() {
+	chosenOptions = make(map[string]string)
+
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("GET /static/", http.StripPrefix("/static/", fs))
 
@@ -25,12 +28,12 @@ func main() {
 }
 
 func indexView(w http.ResponseWriter, r *http.Request) {
-	component := views.Base(options)
+	component := views.Base(availableOptions)
 	component.Render(r.Context(), w)
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	component := views.Base(options)
+	component := views.Base(availableOptions)
 
 	services.SetArgument("url", r.FormValue("url"))
 	err := services.Download()
@@ -45,21 +48,21 @@ func optionsHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("url")
 
 	// lmao
-	log.Println("??")
-	options, _ = services.GetOptions(url)
+	availableOptions, _ = services.GetOptions(url)
 
-	component := views.Base(options)
+	component := views.Base(availableOptions)
 	component.Render(r.Context(), w)
 }
 
 func argumentHandler(w http.ResponseWriter, r *http.Request) {
-	component := views.Base(options)
+	component := views.Base(availableOptions)
 
 	argName := r.PathValue("arg_name")
 	argValue := r.FormValue(argName)
 
 	switch argName {
-	case "video_quality":
+	case "video_resolution":
+		chosenOptions["resolution"] = argValue
 		format := ""
 
 		if argValue == "Best" {

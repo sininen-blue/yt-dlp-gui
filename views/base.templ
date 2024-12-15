@@ -60,12 +60,12 @@ templ Base(options services.Options) {
 							</select>
 						</label>
 						<label>
-							Video quality
+							Video Resolution
 							<select
-								hx-post="/arg/video_quality"
+								hx-post="/arg/video_resolution"
 								hx-swap="none"
 								name="video_quality"
-								aria-label="Select video quality"
+								aria-label="Select video resolution"
 							>
 								for _, format := range options.Formats {
 									if format.VideoExt != "none" {
