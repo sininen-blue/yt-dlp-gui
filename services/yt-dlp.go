@@ -7,14 +7,11 @@ import (
 )
 
 var command exec.Cmd
-var defaultArgs []string
+var argMap map[string]string
 
 func init() {
-	defaultArgs = []string{
-		"--progress-template",
-		"download:[%(progress)s]",
-	}
-	command.Args = append(command.Args, defaultArgs...)
+	argMap = make(map[string]string)
+	argMap["--progress-template"] = "download:[%(progress)s]"
 }
 
 func CheckYtDlp() error {
@@ -25,12 +22,40 @@ func CheckYtDlp() error {
 	return nil
 }
 
-func AddArgument(arg string) {
-	log.Println("adding argument", arg)
-	command.Args = append(command.Args, arg)
+func GetOptions(url string) error {
+	optionsCommand := exec.Command("yt-dlp", url, "-j")
+
+	stdout, err := optionsCommand.StdoutPipe()
+	if err != nil {
+		log.Println("Couldn't connect to stdout:", err)
+		return err
+	}
+
+	log.Println(optionsCommand.Args)
+	err = optionsCommand.Start()
+	if err != nil {
+		log.Println("Couldn't start:", err)
+		return err
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		// do parsing here
+		log.Println(scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Println("Error reading stdout:", err)
+	}
+
+	if err := optionsCommand.Wait(); err != nil {
+		log.Println("Error waiting for optionsCommand:", err)
+	}
+	return nil
 }
 
-func RemoveArgument() {
+func SetArgument(argName string, arg string) {
+	argMap[argName] = arg
 }
 
 func Download() error {
@@ -39,7 +64,14 @@ func Download() error {
 		log.Println("yt-dlp could not be found:", err)
 		return err
 	}
-	command = *exec.Command("yt-dlp", command.Args...)
+	command = *exec.Command("yt-dlp")
+
+	for argName, argValue := range argMap {
+		command.Args = append(command.Args, argName)
+		command.Args = append(command.Args, argValue)
+	}
+
+	command.Args = append(command.Args, argMap["url"])
 
 	stdout, err := command.StdoutPipe()
 	if err != nil {
@@ -47,6 +79,7 @@ func Download() error {
 		return err
 	}
 
+	log.Println(command.Args)
 	err = command.Start()
 	if err != nil {
 		log.Println("Couldn't start:", err)
@@ -55,15 +88,16 @@ func Download() error {
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
+		// do parsing here
 		log.Println(scanner.Text())
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Println("Error reading stdout:", err)
 	}
+
 	if err := command.Wait(); err != nil {
 		log.Println("Error waiting for command:", err)
 	}
 	return nil
-
 }

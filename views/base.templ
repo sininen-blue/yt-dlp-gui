@@ -1,6 +1,6 @@
 package views
 
-templ Base() {
+templ Base(options map[string]string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -23,7 +23,16 @@ templ Base() {
 						Youtube Url:
 					</label>
 					<fieldset id="url" role="group">
-						<input type="url" name="url" placeholder="https://www.youtube.com/watch?v=KxGRhd_iWuE" required/>
+						<input
+							hx-post="/updateOpts/"
+							hx-trigger="changed"
+							hx-target="html"
+							type="url"
+							name="url"
+							placeholder="https://www.youtube.com/watch?v=KxGRhd_iWuE"
+							value={ options["url"] }
+							required
+						/>
 						<button type="submit">Download</button>
 					</fieldset>
 				</form>
