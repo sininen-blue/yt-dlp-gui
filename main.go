@@ -1,77 +1,62 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-
-	"yt-dlp-gui/services"
-	"yt-dlp-gui/views"
+	"os/exec"
+	"text/template"
 )
 
-var availableOptions services.Options
-var chosenOptions map[string]string
+var tmpl template.Template
+
+type VideoInfo struct {
+	Title    string   `json:"title"`
+	Formats  []Format `json:"formats"`
+	Playlist string   `json:"playlist"`
+}
+
+type Format struct {
+	Id         string `json:"format_id"`
+	Ext        string `json:"ext"`
+	Resolution string `json:"resolution"`
+	AudioExt   string `json:"audio_ext"`
+	VideoExt   string `json:"video_ext"`
+}
 
 func main() {
-	chosenOptions = make(map[string]string)
+	tmpl = *template.Must(template.ParseGlob("views/*.html"))
 
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("GET /static/", http.StripPrefix("/static/", fs))
 
 	http.HandleFunc("GET /", indexView)
-	http.HandleFunc("POST /download", downloadHandler)
-	http.HandleFunc("POST /updateOpts", optionsHandler)
-	http.HandleFunc("POST /arg/{arg_name}", argumentHandler)
+	http.HandleFunc("POST /check/", optionsView)
 
 	fmt.Println("Listening on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func indexView(w http.ResponseWriter, r *http.Request) {
-	component := views.Base(availableOptions)
-	component.Render(r.Context(), w)
+	tmpl.ExecuteTemplate(w, "base", "")
 }
 
-func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	component := views.Base(availableOptions)
-
-	services.SetArgument("url", r.FormValue("url"))
-	err := services.Download()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	component.Render(r.Context(), w)
-}
-
-func optionsHandler(w http.ResponseWriter, r *http.Request) {
+func optionsView(w http.ResponseWriter, r *http.Request) {
+	// assumes valid url
 	url := r.FormValue("url")
 
-	// lmao
-	availableOptions, _ = services.GetOptions(url)
-
-	component := views.Base(availableOptions)
-	component.Render(r.Context(), w)
-}
-
-func argumentHandler(w http.ResponseWriter, r *http.Request) {
-	component := views.Base(availableOptions)
-
-	argName := r.PathValue("arg_name")
-	argValue := r.FormValue(argName)
-
-	switch argName {
-	case "video_resolution":
-		chosenOptions["resolution"] = argValue
-		format := ""
-
-		if argValue == "Best" {
-			format += "bestvideo*"
-		}
-	default:
-		log.Println("prop error here, you somehow added an invalid thing")
+	cmd := exec.Command("yt-dlp", "-j", url)
+	data, err := cmd.Output()
+	if err != nil {
+		log.Fatal("Error running program:", err)
 	}
-	// switch statement here about all the possible arguments
 
-	component.Render(r.Context(), w)
+	var videoInfo VideoInfo
+	err = json.Unmarshal(data, &videoInfo)
+	if err != nil {
+		log.Fatal("Error unmarshaling data:", err)
+	}
+
+	tmpl.ExecuteTemplate(w, "options", nil)
 }
