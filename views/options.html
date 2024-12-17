@@ -2,7 +2,15 @@
 <section class="basic_options">
     <label>
         Extension:
-        <select name="extension"></select>
+        <select hx-post="/check_options/extension"
+                hx-trigger="change"
+                hx-target="#options"
+                name="extension">
+            <option>Best</option>
+            {{ range $key, $value := .extensions }}
+            <option>{{ $key }}</option>
+            {{ end }}
+        </select>
     </label>
     <label>
         Resolution:
@@ -11,12 +19,6 @@
             {{ range $key, $value := .resolutions }}
             <option>{{ $key }}</option>
             {{ end }}
-        </select>
-    </label>
-    <label>
-        Audio Quality:
-        <select name="audio_quality">
-            <option>Best</option>
         </select>
     </label>
 </section>
