@@ -8,7 +8,9 @@
                 name="extension">
             <option>Best</option>
             {{ range $key, $value := .extensions }}
-            <option>{{ $key }}</option>
+            <option {{ if $value }}selected{{ end }}>
+                {{ $key }}
+            </option>
             {{ end }}
         </select>
     </label>

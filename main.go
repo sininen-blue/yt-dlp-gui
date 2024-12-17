@@ -60,7 +60,7 @@ func optionsView(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Error unmarshaling data:", err)
 	}
 
-	data := map[string]map[string]string{
+	data := map[string]interface{}{
 		"resolutions": getAllResolutions(),
 		"extensions":  getAllExtensions(),
 	}
@@ -69,47 +69,61 @@ func optionsView(w http.ResponseWriter, r *http.Request) {
 }
 
 func checkOptionsView(w http.ResponseWriter, r *http.Request) {
-	extensions := make(map[string]string)
-	resolutions := make(map[string]string)
+	extensions := make(map[string]bool)
+	resolutions := make(map[string]bool)
 
 	changedOption := r.PathValue("option")
 	switch changedOption {
 	case "extension":
 		currentExtension := r.FormValue("extension")
-		for extension, id := range getAllExtensions() {
+		for extension := range getAllExtensions() {
 			if extension != currentExtension {
-				extensions[extension+"!"] = id
+				extensions[extension] = false
 			} else {
-				extensions[extension] = id
+				extensions[extension] = true
+			}
+		}
+
+		for _, format := range videoInfo.Formats {
+			if format.Ext != currentExtension {
+				continue
+			}
+			for resolution := range getAllResolutions() {
+				if format.Resolution == resolution {
+					resolutions[resolution] = true
+					break
+				} else {
+					resolutions[resolution] = false
+				}
 			}
 		}
 	}
 
-	data := map[string]map[string]string{
+	data := map[string]interface{}{
 		"resolutions": resolutions,
 		"extensions":  extensions,
 	}
 	tmpl.ExecuteTemplate(w, "options", data)
 }
 
-func getAllResolutions() map[string]string {
-	resolutions := make(map[string]string)
+func getAllResolutions() map[string]bool {
+	resolutions := make(map[string]bool)
 	for _, format := range videoInfo.Formats {
 		if format.VideoExt == "none" {
 			continue
 		}
 		if _, ok := resolutions[format.Resolution]; ok == false {
-			resolutions[format.Resolution] = format.Id
+			resolutions[format.Resolution] = false
 		}
 	}
 	return resolutions
 }
 
-func getAllExtensions() map[string]string {
-	extensions := make(map[string]string)
+func getAllExtensions() map[string]bool {
+	extensions := make(map[string]bool)
 	for _, format := range videoInfo.Formats {
 		if _, ok := extensions[format.Ext]; ok == false {
-			extensions[format.Ext] = format.Id
+			extensions[format.Ext] = false
 		}
 	}
 	return extensions
