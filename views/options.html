@@ -1,25 +1,23 @@
-{{ block "options" . }}
-
+{{ define "options" }}
 <section class="basic_options">
-	<label>
-		Extension:
-		<select name="extension">
-		</select>
-	</label>
-
-	<label>
-		Video Quality:
-		<select name="resolution">
-			<option>Best</option>
-		</select>
-	</label>
-
-	<label>
-		Audio Quality:
-		<select name="audio_quality">
-			<option>Best</option>
-		</select>
-	</label>
+    <label>
+        Extension:
+        <select name="extension"></select>
+    </label>
+    <label>
+        Resolution:
+        <select name="resolution">
+            <option>Best</option>
+            {{ range $key, $value := .resolutions }}
+            <option>{{ $key }}</option>
+            {{ end }}
+        </select>
+    </label>
+    <label>
+        Audio Quality:
+        <select name="audio_quality">
+            <option>Best</option>
+        </select>
+    </label>
 </section>
-
 {{ end }}

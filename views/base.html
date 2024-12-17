@@ -1,30 +1,30 @@
 {{ block "base" . }}
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta name="description" content="a web based yt-dlp frontend" />
-
-	<link rel="stylesheet" href="/static/css/base.css" type="text/css" />
-	<script src="/static/js/htmx.min.js"></script>
-
-	<title>yt-dlp gui</title>
-</head>
-
-<body>
-	<main>
-		<label>
-			Youtube URL:
-			<input hx-post="/check/" hx-target="#options" type="url" name="url" required>
-		</label>
-	</main>
-	<section class=".ptions" id="options">
-		{{ template "options" . }}
-	</section>
-</body>
-
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="a web based yt-dlp frontend" />
+        <meta name="keywords" content="yt-dlp gui" />
+        <link rel="stylesheet" href="/static/css/base.css" type="text/css" />
+        <script src="/static/js/htmx.min.js"></script>
+        <title>yt-dlp gui</title>
+    </head>
+    <body>
+        <main>
+            <label>
+                Youtube URL:
+                <input hx-post="/check/"
+                       hx-trigger="input changed delay:300ms, load"
+                       hx-target="#options"
+                       type="url"
+                       name="url"
+                       required>
+            </label>
+        </main>
+        <section class=".ptions" id="options">
+            {{ template "options" . }}
+        </section>
+    </body>
 </html>
-
 {{ end }}

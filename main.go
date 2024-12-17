@@ -47,16 +47,30 @@ func optionsView(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("url")
 
 	cmd := exec.Command("yt-dlp", "-j", url)
-	data, err := cmd.Output()
+	output, err := cmd.Output()
 	if err != nil {
 		log.Fatal("Error running program:", err)
 	}
 
 	var videoInfo VideoInfo
-	err = json.Unmarshal(data, &videoInfo)
+	err = json.Unmarshal(output, &videoInfo)
 	if err != nil {
 		log.Fatal("Error unmarshaling data:", err)
 	}
 
-	tmpl.ExecuteTemplate(w, "options", nil)
+	resolutions := make(map[string]string)
+	for _, format := range videoInfo.Formats {
+		if format.VideoExt == "none" {
+			continue
+		}
+		if _, ok := resolutions[format.Resolution]; ok == false {
+			resolutions[format.Resolution] = format.Id
+		}
+	}
+
+	data := map[string]map[string]string{
+		"resolutions": resolutions,
+	}
+
+	tmpl.ExecuteTemplate(w, "options", data)
 }
